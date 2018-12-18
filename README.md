@@ -2,7 +2,7 @@
 
 The Idea of th project is, video conferencing in a chat room as a whole class of student and teacher log-in remotely.
 
-In addition, filliped education, according to the teacher wants, the students can go to a special chat rooms to discuss the subject as pairs. 
+In addition, required of flipped education, according to the teacher wants, the students can go to a special chat rooms to discuss the subject as pairs. 
 
 When the teacher finishes the discussion, the students called re-back automatically again to the general classroom chat room.
 
