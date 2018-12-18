@@ -1,4 +1,4 @@
-# Flipped Learning Chrome Extantaion 
+# Flipped Learning Chrome Extension
 
 The Idea of th project is, video conferencing in a chat room as a whole class of student and teacher log-in remotely.
 
