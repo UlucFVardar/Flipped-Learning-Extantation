@@ -7,7 +7,7 @@ In addition, required of flipped education, according to the teacher wants, the 
 When the teacher finishes the discussion, the students called re-back automatically again to the general classroom chat room.
 
 
-### To Visualize(diagram) The Project : 
+### Diagram The Project : 
  ![alt text](https://raw.githubusercontent.com/UlucFVardar/Flipped-Learning-Extantation/master/Flipped.png)
 
 
