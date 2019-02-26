@@ -64,7 +64,7 @@
     "testmail_FF@mef.edu.tr": "https://meet.jit.si/yetgenTest-group4", 
     "testmail_T@mef.edu.tr": "https://meet.jit.si/yetgenTest-group2", 
     "testmail_MM@mef.edu.tr": "https://meet.jit.si/yetgenTest-group4", 
-    "testmail_FFF@mef.edu.tr": "https://meet.jit.si/yetgenTest-group6", 
+    "testmail_FFF@mef.edu.tr": "https://meet.jit.si/yetgenTest-group2", 
     "testmail_I@mef.edu.tr": "https://meet.jit.si/yetgenTest-group1", 
     "testmail_KKK@mef.edu.tr": "https://meet.jit.si/yetgenTest-group7", 
     "testmail_WW@mef.edu.tr": "https://meet.jit.si/yetgenTest-group5", 
@@ -76,5 +76,17 @@
     "testmail_QQQ@mef.edu.tr": "https://meet.jit.si/yetgenTest-group7", 
     "testmail_YYY@mef.edu.tr": "https://meet.jit.si/yetgenTest-group8", 
     "testmail_V@mef.edu.tr": "https://meet.jit.si/yetgenTest-group3", 
-    "testmail_GGG@mef.edu.tr": "https://meet.jit.si/yetgenTest-group6"
+    "testmail_GGG@mef.edu.tr": "https://meet.jit.si/yetgenTest-group6",
+    "GROUPS" : { 
+    "https://meet.jit.si/yetgenTest-group1" : ["Grup1"],
+    "https://meet.jit.si/yetgenTest-group2" : ["Grup2"],
+    "https://meet.jit.si/yetgenTest-group3" : ["Grup3"],
+    "https://meet.jit.si/yetgenTest-group4" : ["Grup4"],
+    "https://meet.jit.si/yetgenTest-group5" : ["Grup5"],
+    "https://meet.jit.si/yetgenTest-group6" : ["piskopat"],
+    "https://meet.jit.si/yetgenTest-group7" : ["Grup7"],
+    "https://meet.jit.si/yetgenTest-group8" : ["Grup8"],
+    "https://meet.jit.si/yetgenTest-group9" : ["Grup9"],
+    "https://meet.jit.si/yetgenTest-group10" : ["Grup10"]
+     }
 }

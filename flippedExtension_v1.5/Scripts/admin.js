@@ -126,9 +126,8 @@ chrome.storage.sync.get(['info'], function(result) {
     to_back_for_admin();
 
     setInterval(function(){
-        /// call your function here
         connection.send(USERNAME+'-ıamnot die');
-    }, Math.floor(Math.random() * (30000 - 12000 + 1)) + 12000 );
+    }, Math.floor(Math.random() * (120000 - 40000 + 1)) + 40000 );
 
 });
 

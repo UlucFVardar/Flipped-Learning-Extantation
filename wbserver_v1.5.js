@@ -50,7 +50,6 @@ function MatchAllClass(){
 	}
 	a['GROUPS'] = group
 	return a;
-
 }
 function MatchAllClass2(){
 	var obj = JSON.parse(fs.readFileSync('./gruplar.json', 'utf8'));
@@ -62,10 +61,10 @@ var server = ws.createServer(function (conn) {
 
 	});
     conn.on("text", function (str) {
-    	console.log('Mesaj geldi'+str);
+    	console.log('Mesaj geldi->'+str);
 		if (str == 'MatchAll'){
 			console.log("Hoca İsareti verdi "+str)
-			a = MatchAllClass()
+			a = MatchAllClass2()
 			console.log(a)
 			server.connections.forEach(function (conn) {
 		    	conn.sendText(JSON.stringify(a))
@@ -85,7 +84,10 @@ var server = ws.createServer(function (conn) {
 			})	
 		}
 		else if (str.includes('TeacherCall')){
-			admin_conn.sendText(str);
+			//admin_conn.sendText(str);
+			
+			admin_conn.sendText( 'TeacherCall-'+MatchAllClass2()['GROUPS'][ MatchAllClass2()[str.split('-')[1]] ] );
+			console.log('TeacherCall-'+MatchAllClass2()['GROUPS'][ MatchAllClass2()[str.split('-')[1]] ] );
 		}
 		else if (str.includes('-ıamnot die')){
 			
