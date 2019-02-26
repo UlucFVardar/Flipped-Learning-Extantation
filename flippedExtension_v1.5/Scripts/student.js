@@ -2,7 +2,9 @@
 chrome.storage.sync.get(['info'], function(result) {
     console.log("\n\n"+result.info[0] + " " + result.info[1]+"\n\n");
     document.getElementById('classInfo').innerHTML = result.info[0] + " " + result.info[1]; 
-    var USERNAME = String(result.info[2].split('@')[0]);
+    //var USERNAME = String(result.info[2].split('@')[0]);
+
+    var USERNAME = String(result.info[2]);
 
     function go_lobby(){
         var frame = document.getElementById('homePageFrame');
@@ -12,6 +14,8 @@ chrome.storage.sync.get(['info'], function(result) {
 
 
     var connection = new WebSocket(result.info[4]); // change this dimacily endPointUrl
+    //document.getElementById("CallTeacher").style.display="none";
+
     connection.onopen = function () {
         connection.send(USERNAME); // Send the message 'Ping' to the server
         document.getElementById('result0').value=USERNAME;
@@ -33,8 +37,12 @@ chrome.storage.sync.get(['info'], function(result) {
         connection.send('TeacherCall-'+ USERNAME);
     };
     go_lobby();
-    document.getElementById("CallTeacher").style.display="none";
+    
 
+    setInterval(function(){
+        /// call your function here
+        connection.send(USERNAME+'-ıamnot die');
+    }, Math.floor(Math.random() * (30000 - 12000 + 1)) + 12000 );
 
 
     

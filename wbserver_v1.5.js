@@ -1,4 +1,5 @@
 var ws = require("nodejs-websocket")
+var fs = require('fs');
 
 var admin_key = 'none'
 var admin_conn  = 'none'
@@ -16,7 +17,6 @@ function shuffle(a,b) {
 }
 function MatchAllClass(){
 	a = {}
-
 	users_name,users_key = shuffle(users_name,users_key);
 	if( users_name.length % 2 == 0){
 		var id = 0
@@ -52,6 +52,10 @@ function MatchAllClass(){
 	return a;
 
 }
+function MatchAllClass2(){
+	var obj = JSON.parse(fs.readFileSync('./gruplar.json', 'utf8'));
+	return obj
+}
 var server = ws.createServer(function (conn) {
 
 	process.on('uncaughtException', function (err) {
@@ -83,8 +87,9 @@ var server = ws.createServer(function (conn) {
 		else if (str.includes('TeacherCall')){
 			admin_conn.sendText(str);
 		}
-		else if (str == 'notDie'){
-			console.log('olmemiis' + conn['key'])
+		else if (str.includes('-ıamnot die')){
+			
+			console.log(str+'---olmemiis' + conn['key'])
 		}
 		else{
 			if (str.includes('ADMIN')){
@@ -130,7 +135,7 @@ var server = ws.createServer(function (conn) {
         
 
     })
-}).listen(3000)
+}).listen(3003)
 
 
 
