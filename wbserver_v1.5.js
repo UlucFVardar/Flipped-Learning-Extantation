@@ -6,6 +6,9 @@ var admin_conn  = 'none'
 var admin_name = 'none'
 var users_name = []
 var users_key = []
+var users_con = []
+var in_flipp = true
+
 
 function shuffle(a,b) {
     for (let i = a.length - 1; i > 0; i--) {
@@ -69,10 +72,11 @@ var server = ws.createServer(function (conn) {
 			server.connections.forEach(function (conn) {
 		    	conn.sendText(JSON.stringify(a))
 			})
+			in_flipp = true
 		}
 		else if (str.includes('MatchBack') ){
 			console.log("-------HOCA GERI CAGIRDI------\n");
-
+			in_flipp = false;
 			comeBack = {}
 			var lobby = str.split("=")[1];
 			console.log(lobby);
@@ -108,6 +112,7 @@ var server = ws.createServer(function (conn) {
 			}else{
 				users_name.push(str);
 				users_key.push(conn['key'])
+				users_con.push(conn)
 				console.log("-------\nYeni Kullanıcı Geldi\n name : "+ str +"\n key :  " + conn['key'] + "\n------\n");
 
 				console.log("all users "+users_name.toString())
@@ -115,6 +120,10 @@ var server = ws.createServer(function (conn) {
 		        a = {}
 		        a['update'] = users_name.toString()
 		        admin_conn.sendText(JSON.stringify(a))			    
+			        if (in_flipp == true){
+						a = MatchAllClass2()
+					    conn.sendText(JSON.stringify(a))
+			        }
 				}
 
 			}
@@ -127,6 +136,8 @@ var server = ws.createServer(function (conn) {
 		var index = users_key.indexOf(conn['key']);
 		users_name.splice(index, 1);
 		users_key.splice(index, 1);
+		users_con.splice(index, 1);
+
 		console.log("-------\nKullanıcı Cıktı\n kalanlar ; \n");
         console.log("all users "+users_name.toString())
         console.log("all users "+users_key.toString() + "\n------\n")
@@ -134,9 +145,15 @@ var server = ws.createServer(function (conn) {
         a['update'] = users_name.toString()
         admin_conn.sendText(JSON.stringify(a))
 
-        
-
     })
+
+    setInterval(function(){
+        a = {}
+		a['update'] = users_name.toString()
+		admin_conn.sendText(JSON.stringify(a))
+    }, Math.floor(Math.random() * (90000 - 30000 + 1)) + 30000  );
+
+
 }).listen(3003)
 
 
