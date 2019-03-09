@@ -44,10 +44,12 @@ function initialClass() {
 	temp.InFlipped = false ; 
 	temp.LobbyLink = '' ;
 	temp.UsersName = [] ;
+	temp.UsersKeys = [] ;
 	temp.UsersConn = [] ;
 
 	temp.AssisName = [] ; 
 	temp.AssisConn = [] ;
+	temp.AssisKeys = [] ;
 
 	temp.AdminName = '' ;
 	temp.AdminConn = null ; 
@@ -137,7 +139,24 @@ var server = ws.createServer(function (conn) {
 		LoggedClass = MessageData.LoggedClass
 
 		//------------ LOG IN CASES ------------------------------------------------------
-		if ( str.includes('ILoggedIn') ){ //Student Log in 
+		if ( str.includes('ILoggedInAdmin') ){ // Admin Log in
+			All_Conns[conn['key']] = LoggedClass
+			adminMail  = MessageData.ILoggedInAdmin
+			try{
+				All_Class_Infos[LoggedClass].AdminName = adminMail
+				All_Class_Infos[LoggedClass].AdminConn = conn
+			}catch(err){
+				All_Class_Infos[LoggedClass] = initialClass()
+				All_Class_Infos[LoggedClass].AdminName = adminMail
+				All_Class_Infos[LoggedClass].AdminConn = conn
+				console.log("-------------\n"+LoggedClass+" class opened");
+			}
+			console.log("adminMail ->", adminMail)
+			if (All_Class_Infos[LoggedClass].LobbyLink != '' )
+				conn.sendText(JSON.stringify({ "assigned_url" : All_Class_Infos[LoggedClass].LobbyLink }))
+			conn.sendText(JSON.stringify({ "OnlineStudents" : All_Class_Infos[LoggedClass].UsersName }))
+		}
+		else if ( str.includes('ILoggedIn') ){ //Student Log in 
 			All_Conns[conn['key']] = LoggedClass
 			studentMail  = MessageData.ILoggedIn
 			// format of LoggedClass -> School:Class -> MEF:Yetgen
@@ -165,23 +184,7 @@ var server = ws.createServer(function (conn) {
 			if ( All_Class_Infos[LoggedClass].AdminConn != null)
 				All_Class_Infos[LoggedClass].AdminConn.sendText(JSON.stringify({ "OnlineStudents" : All_Class_Infos[LoggedClass].UsersName }))
 		}
-		else if ( str.includes('ILoggedInAdmin') ){ // Admin Log in
-			All_Conns[conn['key']] = LoggedClass
-			adminMail  = MessageData.ILoggedInAdmin
-			try{
-				All_Class_Infos[LoggedClass].AdminName = adminMail
-				All_Class_Infos[LoggedClass].AdminConn = conn
-			}catch(err){
-				All_Class_Infos[LoggedClass] = initialClass()
-				All_Class_Infos[LoggedClass].AdminName = adminMail
-				All_Class_Infos[LoggedClass].AdminConn = conn
-				console.log("-------------\n"+LoggedClass+" class opened");
-			}
-			console.log("adminMail ->", adminMail)
-			if (All_Class_Infos[LoggedClass].LobbyLink != '' )
-				conn.sendText(JSON.stringify({ "assigned_url" : All_Class_Infos[LoggedClass].LobbyLink }))
-			conn.sendText(JSON.stringify({ "OnlineStudents" : All_Class_Infos[LoggedClass].UsersName }))
-		}
+
 		//--------------------------------------------------------------------------------
 
 		//------------ MATCHING FIELDS ----------------------------------------------------
