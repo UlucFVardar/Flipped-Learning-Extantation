@@ -7,7 +7,8 @@ var fs = require('fs');
 	"MEF:YETGENTEST" : {
 							"InFlipped" : True,
 							"LobbyLink" : "....", 	
-
+							
+							"Number_of_Logged_In_User"
 							"UsersName" : [],
 							"UsersConn" : [],
 							"UsersKeys" : [],
@@ -20,7 +21,9 @@ var fs = require('fs');
 							"AdminConn" : "....",
 							
 							"UserFlpGroups" : [],  // roomnames with the same order UsersName
-
+							
+							"FlipType" : "N",
+							"FlipNumber": 2,
 							"FlpGroups"	: {	
 											"GroupName1" : [],
 											"GroupName2" : []	
@@ -46,6 +49,7 @@ function initialClass() {
 	temp.UsersName = [] ;
 	temp.UsersKeys = [] ;
 	temp.UsersConn = [] ;
+	temp.Number_of_Logged_In_User = 0
 
 	temp.AssisName = [] ; 
 	temp.AssisConn = [] ;
@@ -66,35 +70,36 @@ function searchGroup(studentMail,FlpGroups){
 
 function createGroups( ClassOfUsers, userNames, numberOfStudentInARoom){
 	//var copyUsers = JSON.parse(JSON.stringify(userNames));
-	UserFlpGroups = []
-	FlpGroups = {}
-	FlpGjitsi = {}
+	UserFlpGroups = [] ;
+	FlpGroups = {} ;
+	FlpGjitsi = {} ;
 
-	randomList = []
-	counter = 1
+	randomList = [];
+	counter = 1;
 	for (var i = 0; i < userNames.length; i++ ){
-		groupName = 'Group'+String(counter)
-		roomName = ClassOfUsers+String(counter)
-		randomList.push( roomName )
-		FlpGroups[groupName] = []
-		FlpGjitsi[groupName] = roomName
-
+		groupName = 'Group'+String(counter);
+		roomName = (ClassOfUsers+String(counter)).replace(':','_');
+		randomList.push( roomName );
+		FlpGroups[groupName] = [];
+		FlpGjitsi[groupName] = roomName;
+		if (counter % numberOfStudentInARoom == 0)
+			counter ++;;
+	}
+	counter = 1;
+	for (var i = 0; i < userNames.length; i++){
+		groupName = 'Group'+String(counter);
+		randomIndex = getRandomInt(0,randomList.length);
+		UserFlpGroups.push( randomList[randomIndex] );
+		FlpGroups[groupName].push(userNames[i]);
+		randomList.splice(randomIndex, 1);
 		if (counter % numberOfStudentInARoom == 0)
 			counter ++;
 	}
-	counter = 1
-	for (var i = 0; i < userNames.length; i++){
-		groupName = 'Group'+String(counter)
-
-		randomIndex = getRandomInt(0,randomList.length)
-		UserFlpGroups[i] = randomList[randomIndex]
-		FlpGroups[groupName].push(userNames[i])
-		randomList.splice(randomIndex, 1);
-		if (counter % numberOfStudentInARoom == 0)
-			counter ++;		
-	}
-	
-	return UserFlpGroups, FlpGroups, FlpGjitsi ;
+	t = []
+	t.push(UserFlpGroups)
+	t.push(FlpGroups)
+	t.push(FlpGjitsi)
+	return t;
 }
 
 function loadGroups( ClassOfUsers, userNames, AdminFlpGroups){
@@ -111,9 +116,13 @@ function loadGroups( ClassOfUsers, userNames, AdminFlpGroups){
 	}
 	counter = 1
 	for (var FlpGroup in FlpGroups)
-		FlpGjitsi[FlpGroup] = ClassOfUsers+String(counter++)
+		FlpGjitsi[FlpGroup] = (ClassOfUsers+String(counter++)).replace(':','_');
 
-	return UserFlpGroups, FlpGroups, FlpGjitsi ; 
+	t = []
+	t.push(UserFlpGroups)
+	t.push(FlpGroups)
+	t.push(FlpGjitsi)
+	return t;
 }
 
 function callAllStudents_2_lobby(UsersConn, LobbyLink){
@@ -152,8 +161,14 @@ var server = ws.createServer(function (conn) {
 				console.log("-------------\n"+LoggedClass+" class opened");
 			}
 			console.log("adminMail ->", adminMail)
-			if (All_Class_Infos[LoggedClass].LobbyLink != '' )
+			All_Class_Infos[LoggedClass].Number_of_Logged_In_User ++;
+			if (All_Class_Infos[LoggedClass].LobbyLink != '' ){
 				conn.sendText(JSON.stringify({ "assigned_url" : All_Class_Infos[LoggedClass].LobbyLink }))
+			}
+			if (All_Class_Infos[LoggedClass].FlipType == 'N' )
+				conn.sendText(JSON.stringify({ "flipParams" : All_Class_Infos[LoggedClass].FlipType+'-'+String(All_Class_Infos[LoggedClass].FlipNumber) }))
+			else if (All_Class_Infos[LoggedClass].FlipType == 'S' )
+				conn.sendText(JSON.stringify({ "flipParams" : All_Class_Infos[LoggedClass].FlipType}))			
 			conn.sendText(JSON.stringify({ "OnlineStudents" : All_Class_Infos[LoggedClass].UsersName }))
 		}
 		else if ( str.includes('ILoggedIn') ){ //Student Log in 
@@ -173,6 +188,7 @@ var server = ws.createServer(function (conn) {
 				All_Class_Infos[LoggedClass].UsersKeys.push(conn['key'])
 				console.log("-------------\n"+LoggedClass+" class opened");
 			}
+			All_Class_Infos[LoggedClass].Number_of_Logged_In_User ++;
 			console.log("studentMail ->", studentMail)
 			if ( All_Class_Infos[LoggedClass].InFlipped == false && All_Class_Infos[LoggedClass].LobbyLink != '' )
 				conn.sendText(JSON.stringify({ "assigned_url" : All_Class_Infos[LoggedClass].LobbyLink }))
@@ -189,7 +205,7 @@ var server = ws.createServer(function (conn) {
 
 		//------------ MATCHING FIELDS ----------------------------------------------------
 		else if ( str.includes('MatchAllClass') ){ //comes from Admin
-			if (All_Class_Infos[adminClass].InFlipped == true ) 
+			if (All_Class_Infos[LoggedClass].InFlipped == true ) 
 				return;
 			/*
 			example 1 : 
@@ -208,20 +224,31 @@ var server = ws.createServer(function (conn) {
 			}
 			*/
 			parameter = MessageData.matchParameter // it can be a 'N'number or 'S' static
-			if ( parameter == 'N' )
-				UserFlpGroups, FlpGroups, FlpGjitsi = createGroups( LoggedClass, All_Class_Infos[LoggedClass].UsersName, MessageData.numberOfStudentInARoom )
-			else if ( parameter == 'S' )
-				UserFlpGroups, FlpGroups, FlpGjitsi = loadGroups( LoggedClass, All_Class_Infos[LoggedClass].UsersName, MessageData.AdminFlpGroups )
+			if ( parameter == 'N' ){
+				t = createGroups( LoggedClass, All_Class_Infos[LoggedClass].UsersName, MessageData["numberOfStudentInARoom"] )				
+				UserFlpGroups = t[0]
+				FlpGroups = t[1]
+				FlpGjitsi = t[2]
+			}
+			else if ( parameter == 'S' ){
+				t = loadGroups( LoggedClass, All_Class_Infos[LoggedClass].UsersName, MessageData.AdminFlpGroups )
+				UserFlpGroups = t[0]
+				FlpGroups = t[1]
+				FlpGjitsi = t[2]				
+			}
 			else{
 				console.log('!!!!------ [MatchAllClass Parameter ERROR] ------!!!')
-				return;
+				
 			}
 			All_Class_Infos[LoggedClass].UserFlpGroups = UserFlpGroups
 			All_Class_Infos[LoggedClass].FlpGroups = FlpGroups
 			All_Class_Infos[LoggedClass].FlpGjitsi = FlpGjitsi
 			
-			for ( var i = 0; i < UserFlpGroups.length; i++ )
+			for ( var i = 0; i < UserFlpGroups.length; i++ ){
 				All_Class_Infos[LoggedClass].UsersConn[i].sendText(JSON.stringify({ "assigned_url" : UserFlpGroups[i] }))
+				console.log(JSON.stringify({ "assigned_url" : UserFlpGroups[i] }))
+			}
+
 			//Sending jitsi class urls to teacher
 			All_Class_Infos[LoggedClass].AdminConn.sendText(JSON.stringify({ "GroupsUrls" : FlpGjitsi }))
 			All_Class_Infos[LoggedClass].InFlipped = true
@@ -229,8 +256,8 @@ var server = ws.createServer(function (conn) {
 		else if ( str.includes('CallBackClass') ){ //comes from Admin		
 			callAllStudents_2_lobby( All_Class_Infos[LoggedClass].UsersConn, All_Class_Infos[LoggedClass].LobbyLink )
 			//Asistanlarada lobyi gönder
+			All_Class_Infos[LoggedClass].AdminConn.sendText(JSON.stringify({ "assigned_url" : All_Class_Infos[LoggedClass].LobbyLink  }))
 			All_Class_Infos[LoggedClass].InFlipped = false
-
 		}
 		else if ( str.includes('CallTeacher')   ){ //comes from student
 			calledGroupName  = MessageData.CallTeacher
@@ -243,27 +270,40 @@ var server = ws.createServer(function (conn) {
 			All_Class_Infos[LoggedClass].LobbyLink = MessageData["SetYoutubeUrl"]
 			callAllStudents_2_lobby( All_Class_Infos[LoggedClass].UsersConn, All_Class_Infos[LoggedClass].LobbyLink )
 		}
+		else if ( str.includes('set_flipParams') ){
+			All_Class_Infos[LoggedClass].FlipType = MessageData["matchParameter"]
+			All_Class_Infos[LoggedClass].FlipNumber = MessageData["numberOfStudentInARoom"]
+		}		
 		//--------------------------------------------------------------------------------
 
 	})
 	conn.on("close", function (code, reason) {
 		classofConn = All_Conns[conn['key']]
-		if ( All_Class_Infos[classofConn].AdminConn['key'] == conn['key'] ){
-			console.log("-----!!!!! ADMIN LOG OUT !!!!------ "+classofConn )
-			All_Class_Infos[classofConn].AdminConn = null
-			All_Class_Infos[classofConn].AdminName = ''
+
+		try{
+			if ( All_Class_Infos[classofConn].AdminConn['key'] == conn['key'] ){
+				console.log("-----!!!!! ADMIN LOG OUT !!!!------ "+classofConn )
+				All_Class_Infos[classofConn].AdminConn = null
+				All_Class_Infos[classofConn].AdminName = ''
+			}			
+		}catch(err){
+			console.log("------------");
 		}
-		else if ( All_Class_Infos[classofConn].UsersConn['key'] == conn['key'] ){
-			console.log("-----!!!!! USER LOG OUT !!!!------ "+classofConn )
-			var index = All_Class_Infos[classofConn].UsersKeys.indexOf(conn['key']);
-			All_Class_Infos[classofConn].UsersName.splice(index, 1);
-			All_Class_Infos[classofConn].UsersKeys.splice(index, 1);
-			All_Class_Infos[classofConn].UsersConn.splice(index, 1);
-			All_Class_Infos[classofConn].AdminConn.sendText(JSON.stringify({ "OnlineStudents" : All_Class_Infos[classofConn].UsersName }))
+		try{
+			if ( All_Class_Infos[classofConn].UsersKeys.indexOf( conn['key']) > -1 ){
+				console.log("-----!!!!! USER LOG OUT !!!!------ "+classofConn )
+				var index = All_Class_Infos[classofConn].UsersKeys.indexOf(conn['key']);
+				All_Class_Infos[classofConn].UsersName.splice(index, 1);
+				All_Class_Infos[classofConn].UsersKeys.splice(index, 1);
+				All_Class_Infos[classofConn].UsersConn.splice(index, 1);
+				All_Class_Infos[classofConn].AdminConn.sendText(JSON.stringify({ "OnlineStudents" : All_Class_Infos[classofConn].UsersName }))
+			}	
+		}catch(err){
+			console.log("------------");
 		}
-		else{
-			//cıkan muhtelmen asistan
-		}
+		All_Class_Infos[classofConn].Number_of_Logged_In_User --;
+		if ( All_Class_Infos[classofConn].Number_of_Logged_In_User == 0 )
+			delete All_Class_Infos[classofConn]
     }
     )
 

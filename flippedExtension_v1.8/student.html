@@ -1,18 +1,65 @@
-<html>
-   <head>
-      <meta charset="UTF-8">
-   </head>
-   <body>
-       <p>Result: <output type=text id="result0" value="" readonly> </output>
-        <p><strong>Flipped Learn Extentation</strong></p>
-        <p >You are in the class. ( <strong id="classInfo"> UNI_NAME - LECTURECODE</strong>)</p>
-        
-              <iframe id="homePageFrame" width="919" height="517" src="" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-        
-        <button id="CallTeacher" class="positive" type="submit">Call Teacher</button></p>
+<html lang="en" class="bg-color">
 
-        <script type="text/javascript" src="Scripts/student.js"></script>
-   </body>
+<head>
+  	<meta charset="UTF-8">
+ 	<title>Flipped Learning Extension</title>
+ 	<link href='https://fonts.googleapis.com/css?family=Open+Sans:400,300' rel='stylesheet' type='text/css'>
+  	<link rel="stylesheet" href="css/style.css">
+	<script src='./Scripts/jquery.js'></script>
+	<script src="./Scripts/index.js"></script>
+	<script src="./Scripts/jitsi.js"></script>
+	<script src="./Scripts/student.js"></script>
+
+</head>
+
+<body>
+	<nav class="bg-color">Flipped Learning Extension</nav>
+	<section class="wrapper">
+		<ul class="tabs">
+			<li>Colors</li>
+			<li>Flipped Lecture</li>
+			<li class="active">How to Use</li>
+		</ul>
+		<ul class="tab__content">
+			<li>
+				<div class="content__wrapper">
+					<h2 class="text-color">Pick a color</h2>
+					<ul class="colors">
+						<li data-color="#2ecc71"></li>
+						<li data-color="#D64A4B"></li>
+						<li data-color="#8e44ad"></li>
+						<li class="active-color" data-color="#46a1de"></li>
+						<li data-color="#bdc3c7"></li>
+					</ul>
+				</div>
+			</li>
+			<li>
+				<div  class="content__wrapper">
+					<h2 id ="ClassCode" class="text-color"></h2>
+					
+
+					<div id = "jitsiapi-parent"></div>
+
+					<div id = "youtube-parent"></div>
+  			
+  					
+
+			
+
+
+					<button id="CallTeacher" class="positive" type="submit">Call Teacher</button></p>
+
+				</div>
+			</li>
+			<li class="active">
+				<div class="content__wrapper">
+					<iframe width="400" height="300" src="https://www.youtube.com/embed/xgUe2Ssu7R8?list=RDUeSXH1-nUhY" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+				</div>
+			</li>
+		</ul>
+	</section>
+
+	<footer>Uluç & İlkay</footer>
+</body>
+
 </html>
-
-
