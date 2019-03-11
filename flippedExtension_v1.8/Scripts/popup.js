@@ -35,10 +35,10 @@ function makeARequest(url){
         if (data['statusCode'] == 200){
             var html = "";
             if(data['log_in_type'] == 1){
-                html = "../student.html";
+                html = "../Htmls/student.html";
             }
             else if(data['log_in_type'] == 2){
-                html = "../admin.html";
+                html = "../Htmls/admin.html";
             }
             getInfobyPopup(data['endPointUrl']).then(
                 window.open(html, '_blank')

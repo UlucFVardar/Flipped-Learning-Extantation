@@ -20,7 +20,7 @@ var fs = require('fs');
 							"AdminName" : "....",
 							"AdminConn" : "....",
 							
-							"UserFlpGroups" : [],  // roomnames with the same order UsersName
+							"UserFlpGroups" : {},  // roomnames with the same order UsersName
 							
 							"FlipType" : "N",
 							"FlipNumber": 2,
@@ -50,7 +50,7 @@ function initialClass() {
 	temp.UsersKeys = [] ;
 	temp.UsersConn = [] ;
 	temp.Number_of_Logged_In_User = 0
-
+	temp.FlipType = ''
 	temp.AssisName = [] ; 
 	temp.AssisConn = [] ;
 	temp.AssisKeys = [] ;
@@ -70,7 +70,7 @@ function searchGroup(studentMail,FlpGroups){
 
 function createGroups( ClassOfUsers, userNames, numberOfStudentInARoom){
 	//var copyUsers = JSON.parse(JSON.stringify(userNames));
-	UserFlpGroups = [] ;
+	UserFlpGroups = {} ;
 	FlpGroups = {} ;
 	FlpGjitsi = {} ;
 
@@ -78,21 +78,24 @@ function createGroups( ClassOfUsers, userNames, numberOfStudentInARoom){
 	counter = 1;
 	for (var i = 0; i < userNames.length; i++ ){
 		groupName = 'Group'+String(counter);
-		roomName = (ClassOfUsers+String(counter)).replace(':','_');
+		roomName = (ClassOfUsers+'-group-'+String(counter)).replace(':','_');
 		randomList.push( roomName );
 		FlpGroups[groupName] = [];
 		FlpGjitsi[groupName] = roomName;
-		if (counter % numberOfStudentInARoom == 0)
-			counter ++;;
+		if (i % numberOfStudentInARoom == 0 && i!=0)
+			counter ++;
 	}
 	counter = 1;
 	for (var i = 0; i < userNames.length; i++){
 		groupName = 'Group'+String(counter);
 		randomIndex = getRandomInt(0,randomList.length);
-		UserFlpGroups.push( randomList[randomIndex] );
+
+
+		UserFlpGroups[userNames[i]] = randomList[randomIndex]
+		
 		FlpGroups[groupName].push(userNames[i]);
 		randomList.splice(randomIndex, 1);
-		if (counter % numberOfStudentInARoom == 0)
+		if (i % numberOfStudentInARoom == 0 && i!=0)
 			counter ++;
 	}
 	t = []
@@ -104,14 +107,14 @@ function createGroups( ClassOfUsers, userNames, numberOfStudentInARoom){
 
 function loadGroups( ClassOfUsers, userNames, AdminFlpGroups){
 	FlpGroups = AdminFlpGroups
-	UserFlpGroups = []
+	UserFlpGroups = {}
 	FlpGjitsi = {}
-	for (var i = 0; i < userNames.length; i++ )
-		UserFlpGroups.push('')
+
+
+	
 	for (var FlpGroup in FlpGroups){
 		for (var studentName in FlpGroups[FlpGroup]){
-			studentIndex = userNames.indexOf(studentName)
-			UserFlpGroups[FlpGroup] = studentName
+			UserFlpGroups[FlpGroups[FlpGroup][studentName]] = FlpGroup
 		}
 	}
 	counter = 1
@@ -143,6 +146,9 @@ var All_Conns = {}
 
 var server = ws.createServer(function (conn) {
     conn.on("text", function (str) {
+
+		if (str.includes('Connection-notDie')) return;
+		
     	console.log("Message Recived!\n"+str+"\n\n------------------------------\n");
 		MessageData= JSON.parse(str);
 		LoggedClass = MessageData.LoggedClass
@@ -209,48 +215,41 @@ var server = ws.createServer(function (conn) {
 				return;
 			/*
 			example 1 : 
-			{
-				"MatchAllClass" : "N" ,
+			{   "MatchAllClass" : true,
+				"matchParameter" : "N" ,
 				"numberOfStudentInARoom" : 5
 			}
 			-----------------
 			example 2 : 
-			{
-				"MatchAllClass"  : "S" ,
-				"AdminFlpGroups" : {	
-										"GroupName1" : [],
-										"GroupName2" : []	
-					    			  }
+			{	
+				"MatchAllClass" : true,
+				"matchParameter"  : "S" 
 			}
 			*/
 			parameter = MessageData.matchParameter // it can be a 'N'number or 'S' static
 			if ( parameter == 'N' ){
 				t = createGroups( LoggedClass, All_Class_Infos[LoggedClass].UsersName, MessageData["numberOfStudentInARoom"] )				
-				UserFlpGroups = t[0]
-				FlpGroups = t[1]
-				FlpGjitsi = t[2]
+				All_Class_Infos[LoggedClass].UserFlpGroups =  t[0]
+				All_Class_Infos[LoggedClass].FlpGroups =  t[1]
+				All_Class_Infos[LoggedClass].FlpGjitsi =  t[2]
 			}
 			else if ( parameter == 'S' ){
-				t = loadGroups( LoggedClass, All_Class_Infos[LoggedClass].UsersName, MessageData.AdminFlpGroups )
-				UserFlpGroups = t[0]
-				FlpGroups = t[1]
-				FlpGjitsi = t[2]				
+				var a = 1; 				
 			}
 			else{
-				console.log('!!!!------ [MatchAllClass Parameter ERROR] ------!!!')
-				
+				console.log('!!!!------ [MatchAllClass Parameter ERROR] ------!!!')	
 			}
-			All_Class_Infos[LoggedClass].UserFlpGroups = UserFlpGroups
-			All_Class_Infos[LoggedClass].FlpGroups = FlpGroups
-			All_Class_Infos[LoggedClass].FlpGjitsi = FlpGjitsi
+
 			
-			for ( var i = 0; i < UserFlpGroups.length; i++ ){
-				All_Class_Infos[LoggedClass].UsersConn[i].sendText(JSON.stringify({ "assigned_url" : UserFlpGroups[i] }))
-				console.log(JSON.stringify({ "assigned_url" : UserFlpGroups[i] }))
+			for ( var i = 0; i < All_Class_Infos[LoggedClass].UsersName.length; i++ ){
+				usermail = All_Class_Infos[LoggedClass].UsersName[i]
+				jitsiRoom = All_Class_Infos[LoggedClass].UserFlpGroups[usermail]
+				All_Class_Infos[LoggedClass].UsersConn[i].sendText(JSON.stringify({ "assigned_url" : jitsiRoom}))
+				console.log(JSON.stringify({ "assigned_url" : jitsiRoom}))
 			}
 
 			//Sending jitsi class urls to teacher
-			All_Class_Infos[LoggedClass].AdminConn.sendText(JSON.stringify({ "GroupsUrls" : FlpGjitsi }))
+			All_Class_Infos[LoggedClass].AdminConn.sendText(JSON.stringify({ "GroupsUrls" : All_Class_Infos[LoggedClass].FlpGjitsi }))
 			All_Class_Infos[LoggedClass].InFlipped = true
 		}
 		else if ( str.includes('CallBackClass') ){ //comes from Admin		
@@ -274,6 +273,24 @@ var server = ws.createServer(function (conn) {
 			All_Class_Infos[LoggedClass].FlipType = MessageData["matchParameter"]
 			All_Class_Infos[LoggedClass].FlipNumber = MessageData["numberOfStudentInARoom"]
 		}		
+		else if ( str.includes('Static_Group_Set') ){
+			All_Class_Infos[LoggedClass].FlipType = 'S';
+			console.log(MessageData.AdminFlpGroups)
+			t = loadGroups( LoggedClass, All_Class_Infos[LoggedClass].UsersName, MessageData.AdminFlpGroups )
+			
+			All_Class_Infos[LoggedClass].UserFlpGroups = t[0]
+			All_Class_Infos[LoggedClass].FlpGroups =  t[1]
+			All_Class_Infos[LoggedClass].FlpGjitsi = t[2]	
+
+			console.log("-------UserFlpGroups--------")
+			console.log(All_Class_Infos[LoggedClass].UserFlpGroups)
+			console.log("--------FlpGroups-------")
+			console.log(All_Class_Infos[LoggedClass].FlpGroups)
+			console.log("---------FlpGjitsi------")
+			console.log(All_Class_Infos[LoggedClass].FlpGjitsi)
+			console.log("---------------")	
+		}
+
 		//--------------------------------------------------------------------------------
 
 	})
@@ -304,8 +321,7 @@ var server = ws.createServer(function (conn) {
 		All_Class_Infos[classofConn].Number_of_Logged_In_User --;
 		if ( All_Class_Infos[classofConn].Number_of_Logged_In_User == 0 )
 			delete All_Class_Infos[classofConn]
-    }
-    )
+    })
 
 
 } ).listen(3003)

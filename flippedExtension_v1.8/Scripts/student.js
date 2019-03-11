@@ -7,12 +7,13 @@ chrome.storage.sync.get(['info'], function(result) {
     //password = result.info[3];
     var endPointUrl = result.info[4];
     var LoggedClass = `${schoolName.toUpperCase().replace(' ','')}:${lectureCode.toUpperCase().replace(' ','')}`
+    var roomName ;
     var api = null;
     // ----- FUNCTIONS -----
     function to_Youtube(url){
         //document.getElementById( "homePageFrame").height=400
-        if(api != null)
-            api.dispose();
+        try{api.dispose();}
+        catch(err){a=0;}
         //var frame = document.getElementById('homePageFrame');
         //console.log(url)
         //frame.src=url;
@@ -56,6 +57,8 @@ chrome.storage.sync.get(['info'], function(result) {
                         filmStripOnly: true
                 }
             }
+        try{api.dispose();}
+        catch(err){a=0;}            
         api = new JitsiMeetExternalAPI(domain, options);
     }
     // DEBUG --
@@ -85,28 +88,31 @@ chrome.storage.sync.get(['info'], function(result) {
         MessageData= JSON.parse(str);
         console.log('gelen mesaj ' +str)
         if ( str.includes('assigned_url') ){
-          if ( MessageData["assigned_url"].includes('www.youtube.com/embed/') )
+            if (str.includes('youtube'))
+                document.getElementById("CallTeacher").style.display="none";
+            else 
+                document.getElementById("CallTeacher").style.display="block";            
+            
+            if ( MessageData["assigned_url"].includes('www.youtube.com/embed/') )
                 to_Youtube(MessageData["assigned_url"])
-          else
+            else{
                 to_jistsi (MessageData["assigned_url"])
+                roomName = MessageData["assigned_url"]
+            }
         }
-
-
-        if (event.data.includes('youtube'))
-            document.getElementById("CallTeacher").style.display="none";
-        else 
-            document.getElementById("CallTeacher").style.display="block";
     };
-  /*
 
     document.getElementById('CallTeacher').onclick = function() {
-        connection.send('TeacherCall-'+ username);
+        messInfos = {
+                "CallTeacher" : roomName,
+                "LoggedClass" : LoggedClass
+            }
+        connection.send(JSON.stringify(messInfos));
     };
 
-    go_lobby();
-    
+
     setInterval(function(){
-        connection.send(username+'-ıamnot die');
-    }, Math.floor(Math.random() * (120000 - 40000 + 1)) + 40000 );
-*/
+            connection.send("Connection-notDie");
+            }, Math.floor(Math.random() * (120000 - 40000 + 1)) + 40000 );
+
 });

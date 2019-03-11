@@ -1,4 +1,3 @@
-
 chrome.storage.sync.get(['info'], function(result) {
     // Get necessary variables from chrome storage
     schoolName = result.info[0];
@@ -6,18 +5,116 @@ chrome.storage.sync.get(['info'], function(result) {
     username = String(result.info[2]);
     //password = result.info[3];
     endPointUrl = result.info[4];
-    GroupsUrls = {}
+    var GroupsUrls = {}
     var lobby ;
     var api = null;
 
     var LoggedClass = `${schoolName.toUpperCase().replace(' ','')}:${lectureCode.toUpperCase().replace(' ','')}`
+    var groupNames = {};
+    // -------- EXCEL PARSE -------------------
+    function Upload() {
+        //Reference the FileUpload element.
+        var fileUpload = document.getElementById("fileUpload");
+        //Validate whether File is valid Excel file.
+        var regex = /^([a-zA-Z0-9\s_\\.\-:])+(.xls|.xlsx)$/;
+        if (regex.test(fileUpload.value.toLowerCase())) {
+            if (typeof (FileReader) != "undefined") {
+                var reader = new FileReader();
 
-    
+                //For Browsers other than IE.
+                if (reader.readAsBinaryString) {
+                    reader.onload = function (e) {
+                        ProcessExcel(e.target.result);
+                    };
+                    reader.readAsBinaryString(fileUpload.files[0]);
+                } else {
+                    //For IE Browser.
+                    reader.onload = function (e) {
+                        var data = "";
+                        var bytes = new Uint8Array(e.target.result);
+                        for (var i = 0; i < bytes.byteLength; i++) {
+                            data += String.fromCharCode(bytes[i]);
+                        }
+                        ProcessExcel(data);
+                    };
+                    reader.readAsArrayBuffer(fileUpload.files[0]);
+                }
+            } else {
+                alert("This browser does not support HTML5.");
+            }
+        } else {
+            alert("Please upload a valid Excel file.");
+        }
+    };
+    function ProcessExcel(data) {
+        //Read the Excel File data.
+        var workbook = XLSX.read(data, {
+            type: 'binary'
+        });
+
+        //Fetch the name of First Sheet.
+        var firstSheet = workbook.SheetNames[0];
+
+        //Read all rows from First Sheet into an JSON array.
+        var excelRows = XLSX.utils.sheet_to_row_object_array(workbook.Sheets[firstSheet]);
+
+        //Create a HTML Table element.
+        var table = document.createElement("table");
+        table.border = "1";
+
+        //Add the header row.
+        var row = table.insertRow(-1);
+
+        //Add the header cells.
+        var headerCell = document.createElement("TH");
+        headerCell.innerHTML = "Mail";
+        row.appendChild(headerCell);
+
+        headerCell = document.createElement("TH");
+        headerCell.innerHTML = "Group";
+        row.appendChild(headerCell);
+
+        groupNames = {}
+        //Add the data rows from Excel file.
+        for (var i = 0; i < excelRows.length; i++) {
+            //Add the data row.
+            var row = table.insertRow(-1);
+
+            //Add the data cells.
+            var cell = row.insertCell(-1);
+            cell.innerHTML = excelRows[i].Mail;
+
+            cell = row.insertCell(-1);
+            cell.innerHTML = excelRows[i].Group;
+            try{
+                groupNames[excelRows[i].Group].push(excelRows[i].Mail)
+            }catch(err){
+                groupNames[excelRows[i].Group] = []
+                groupNames[excelRows[i].Group].push(excelRows[i].Mail)
+            }
+        }
+
+        var dvExcel = document.getElementById("dvExcel");
+        dvExcel.innerHTML = "";
+        dvExcel.appendChild(table);
+        
+
+        console.log(JSON.stringify(groupNames))
+            messInfos = {
+                "Static_Group_Set" : true,
+                "LoggedClass" : LoggedClass,
+                "AdminFlpGroups" : groupNames
+            }
+        connection.send(JSON.stringify(messInfos));
+
+    };
+    // ----------------------------------------
+
     // ----- FUNCTIONS -----
     function to_Youtube(url){
         //document.getElementById( "homePageFrame").height=400
-        if(api != null)
-            api.dispose();
+        try{api.dispose();}
+        catch(err){a=0;}
         //var frame = document.getElementById('homePageFrame');
         //console.log(url)
         //frame.src=url;
@@ -29,7 +126,8 @@ chrome.storage.sync.get(['info'], function(result) {
         (document.getElementById('youtube-parent')).innerHTML = temp
     }
     function to_jistsi(rommName){
-        (document.getElementById('youtube-parent')).innerHTML = ''
+        try{(document.getElementById('youtube-parent')).innerHTML = ''}
+        catch(err){a=0;}        
         //var frame = document.getElementById('homePageFrame');
         console.log(rommName)
         //frame.src = "https://meet.jit.si/"+rommName;
@@ -60,6 +158,8 @@ chrome.storage.sync.get(['info'], function(result) {
                         filmStripOnly: true
                 }
             }
+        try{api.dispose();}
+        catch(err){a=0;}            
         api = new JitsiMeetExternalAPI(domain, options);
     }    
     function add_table_new_Student(name){
@@ -84,7 +184,6 @@ chrome.storage.sync.get(['info'], function(result) {
         let cell1 = row2.insertCell(0);
         cell1.innerHTML = 'Online Students';
     }
-
     function add_groups_to_table(data){
         let table = document.getElementById("grouptable");
         // --- to delete
@@ -129,22 +228,19 @@ chrome.storage.sync.get(['info'], function(result) {
         cell1.bgColor = "YELLOW";
         row2.onclick = createClickHandler2(table,row2, lobby);
     }
-
     function to_back_for_allClass(){
         var frame = document.getElementById('homePageFrame');
         frame.src=`https://meet.jit.si/${schoolName.toUpperCase().replace(' ','')}-${lectureCode.toUpperCase().replace(' ','')}-LOBBY`;
         connection.send('MatchBack='+`${schoolName.toUpperCase().replace(' ','')}-${lectureCode.toUpperCase().replace(' ','')}-LOBBY`);
     }
-
     function to_back_for_admin(){
         var frame = document.getElementById('homePageFrame');
         frame.src=`https://meet.jit.si/${schoolName.toUpperCase().replace(' ','')}-${lectureCode.toUpperCase().replace(' ','')}-LOBBY`;
     }
-
-    function make_group_red(name_of_one_student){
+    function make_group_red(name_group){
         let rows = document.getElementById("grouptable").rows;
         for (c = 1 ; c < rows.length ; c ++){
-            if ( (rows[c].getElementsByTagName("td")[0].innerHTML).includes(name_of_one_student) ){
+            if ( (rows[c].getElementsByTagName("td")[0].innerHTML).includes(name_group) ){
                 rows[c].getElementsByTagName("td")[0].bgColor = "RED";
                 break;
             }
@@ -154,7 +250,7 @@ chrome.storage.sync.get(['info'], function(result) {
     // DEBUG --
     console.log("\n\n" + schoolName + " " + lectureCode + username + "\n\n");
     // ---
-    document.getElementById('ClassCode').innerHTML = (schoolName + " " + lectureCode).toUpperCase()
+    document.getElementById('ClassCode').innerHTML = (schoolName + " " + lectureCode).toUpperCase();
 
     // WebSocket Connection Part
     var connection = new WebSocket(endPointUrl);
@@ -205,6 +301,16 @@ chrome.storage.sync.get(['info'], function(result) {
         // Send the message 'Ping' to the server
         if (messInfos.matchParameter != '')
             connection.send(JSON.stringify(messInfos));
+        
+
+        let table = document.getElementById("grouptable");
+        var node = document.getElementById("grouptable");
+        while (node.hasChildNodes()) 
+            node.removeChild(node.lastChild);
+        
+        let row2 = table.insertRow(0);
+        let cell1 = row2.insertCell(0);
+        cell1.innerHTML = 'Students Groups';
     }; 
     document.getElementById('matchTypeButton').onclick = function() {
         messInfos = {
@@ -217,6 +323,10 @@ chrome.storage.sync.get(['info'], function(result) {
         if (messInfos.matchParameter != '')
             connection.send(JSON.stringify(messInfos));
     }; 
+    document.getElementById('excel_file_upload').onclick = function() {
+        Upload();
+    }; 
+    
     //------------------------------------------- 
 
 
@@ -244,44 +354,15 @@ chrome.storage.sync.get(['info'], function(result) {
         else if ( str.includes('flipParams') ){
              document.getElementById('matchType').value = MessageData['flipParams']
         }
+        else if ( str.includes('NeedTeacher') ){
+             make_group_red(MessageData["NeedTeacher"])
+        }
     };
+
+    setInterval(function(){
+        connection.send("Connection-notDie");
+        }, Math.floor(Math.random() * (120000 - 40000 + 1)) + 40000 );
 
     
 
-/*
-    connection.onclose = function(event) {
-        console.log("WebSocket is closed now.");
-        location.reload();
-    };
-
-    connection.onmessage = function (event) {
-        if (event.data.includes('update')){
-            document.getElementById('onlineStudents').value = String(JSON.parse(event.data)['update']);
-            add_table_new_Student( String(JSON.parse(event.data)['update']));
-        }else if (event.data.includes('TeacherCall')){
-            console.log('HOCA CAGRILDI')
-            make_group_red(event.data.split('-')[1]);
-        }else{
-            document.getElementById('result0').value = event.data
-            add_groups_to_table(JSON.parse(event.data))
-        }
-        //document.getElementById('homePageFrame').src=JSON.parse(event.data)['ADMIN'];
-    };
-
-
-    console.log(document.getElementById('match_all'));
-    document.getElementById('match_all').onclick = function() {
-        connection.send('MatchAll');
-    };
-
-    document.getElementById('match_back').onclick = function() {
-        to_back_for_allClass();
-    };
-
-    to_back_for_admin();
-
-    setInterval(function(){
-        connection.send(username+'-ıamnot die');
-    }, Math.floor(Math.random() * (120000 - 40000 + 1)) + 40000 );
-*/
 });

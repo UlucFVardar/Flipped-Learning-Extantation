@@ -1,10 +1,16 @@
-<!DOCTYPE html>
 <html lang="en" class="bg-color">
     <head>
     	 <title>Flipped Learning Extension</title>
         <meta charset="UTF-8">
-        <link rel="stylesheet" href="css/style.css">
-		<script src="./Scripts/jitsi.js"></script>
+        <link rel="stylesheet" href="../css/style.css">
+		<script src="../Scripts/jitsi.js"></script>
+		<script src="../Scripts/jquery.js"></script>
+		<script src="../Scripts/index2.js"></script>
+		
+
+		<script type="text/javascript" src="../Scripts/xlsx.full.min.js"></script>
+		<script type="text/javascript" src="../Scripts/jszip.js"></script>
+
 
     </head>
 
@@ -89,7 +95,7 @@
 											  </div>
 										</div>
 									</div>
-									
+									<hr />
 									<div>
 										<h2>Please Enter Flipped Classes Match Type</h2>
 										<h2>N-2 (means pairs of 2)or S(means static)</h2>
@@ -102,6 +108,13 @@
 											  </div>
 										</div>										
 									</div>	
+									<hr />
+									<div>
+										<h2>Please Choose 2 cloumn excel data to make group Users</h2>
+										<input type="file" id="fileUpload" />
+										<input type="button" id="excel_file_upload" value="Upload" />
+										<div   id="dvExcel"></div>
+									</div>
 									
 									  
 							</div>
@@ -109,7 +122,7 @@
 						
 						<li class="active"> <!-- ABOUT TAB -->
 								<div class="content__wrapper">
-									<iframe width="400" height="300" src="https://www.youtube.com/embed/xgUe2Ssu7R8?list=RDUeSXH1-nUhY" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+									<iframe width="400" height="300" src="https://www.youtube.com/embed/NuK1t5r53oc" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 								</div>
 						</li> <!-- ABOUT TAB END -->	
 						
@@ -123,9 +136,7 @@
 		</div> <!-- ROOT DIV FOR ROWS END -->
           
 		<footer>İlkay & Uluç</footer>
-		<script src="Scripts/jquery.js"></script>
-		<script src="Scripts/index2.js"></script>
-		<script type="text/javascript" src="Scripts/admin.js"></script>
+		<script type="text/javascript" src="../Scripts/admin.js"></script>
 		   
     </body>
     
