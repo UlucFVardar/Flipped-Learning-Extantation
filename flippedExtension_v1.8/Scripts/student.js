@@ -41,21 +41,9 @@ chrome.storage.sync.get(['info'], function(result) {
             height: 400, //tabi aslinda ne olmasini istiyorsan yukseklik ve genisligin
             parentNode: parentElement,
 
-            configOverwrite: {resolution: 240, // Bu 240 360 da olabilir tabii
-                            constraints: {
-                                video: {
-                                    aspectRatio: 16 / 9,
-                                    height: {
-                                        ideal: 240, // Bu 240 360 da olabilir tabii
-                                        max: 240,   // Bu 240 360 da olabilir tabii
-                                        min: 240    
-                                    }
-                                }
+            configOverwrite: {resolution: 360// Bu 240 360 da olabilir tabii
+                           
                             }
-                            },
-            interfaceConfigOverwrite: {
-                        filmStripOnly: true
-                }
             }
         try{api.dispose();}
         catch(err){a=0;}            

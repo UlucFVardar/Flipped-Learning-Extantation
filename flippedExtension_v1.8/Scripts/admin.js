@@ -142,21 +142,9 @@ chrome.storage.sync.get(['info'], function(result) {
             height: 400, //tabi aslinda ne olmasini istiyorsan yukseklik ve genisligin
             parentNode: parentElement,
 
-            configOverwrite: {resolution: 240, // Bu 240 360 da olabilir tabii
-                            constraints: {
-                                video: {
-                                    aspectRatio: 16 / 9,
-                                    height: {
-                                        ideal: 240, // Bu 240 360 da olabilir tabii
-                                        max: 240,   // Bu 240 360 da olabilir tabii
-                                        min: 240    
-                                    }
-                                }
-                            }
+            configOverwrite: {resolution: 360,// Bu 240 360 da olabilir tabii
+                            
                             },
-            interfaceConfigOverwrite: {
-                        filmStripOnly: true
-                }
             }
         try{api.dispose();}
         catch(err){a=0;}            
@@ -224,7 +212,7 @@ chrome.storage.sync.get(['info'], function(result) {
 
         let row2 = table.insertRow(0);
         let cell1 = row2.insertCell(0);
-        cell1.innerHTML = 'Students Groups';
+        cell1.innerHTML = 'LOBBY';
         cell1.bgColor = "YELLOW";
         row2.onclick = createClickHandler2(table,row2, lobby);
     }
@@ -240,7 +228,8 @@ chrome.storage.sync.get(['info'], function(result) {
     function make_group_red(name_group){
         let rows = document.getElementById("grouptable").rows;
         for (c = 1 ; c < rows.length ; c ++){
-            if ( (rows[c].getElementsByTagName("td")[0].innerHTML).includes(name_group) ){
+
+            if ( (GroupsUrls[rows[c].getElementsByTagName("td")[0].innerHTML]).includes(name_group) ){
                 rows[c].getElementsByTagName("td")[0].bgColor = "RED";
                 break;
             }
@@ -304,7 +293,7 @@ chrome.storage.sync.get(['info'], function(result) {
         
 
         let table = document.getElementById("grouptable");
-        var node = document.getElementById("grouptable");
+        var node = document.getElementById("grouptableBody");
         while (node.hasChildNodes()) 
             node.removeChild(node.lastChild);
         
